@@ -1,0 +1,11 @@
+[
+    [
+        "/etc/init.d/kibana"
+    ],
+    [
+        "/etc/init.d/elasticsearch"
+    ],
+    [
+        "/etc/init.d/logstash"
+    ]
+]

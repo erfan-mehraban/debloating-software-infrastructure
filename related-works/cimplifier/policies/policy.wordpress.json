@@ -1,0 +1,19 @@
+[
+    [
+        "/usr/local/bin/supervisord"
+    ],
+    [
+        "/usr/bin/mysqld_safe",
+        "/usr/libexec/mysqld",
+        "/usr/sbin/mysqld",
+        "/usr/bin/mysql",
+        "/usr/bin/mysqladmin",
+        "/usr/bin/mysql_install_db"
+    ],
+    [
+        "/usr/sbin/nginx"
+    ],
+    [
+        "/usr/sbin/php5-fpm"
+    ]
+]

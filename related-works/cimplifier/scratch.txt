@@ -1,0 +1,333 @@
+strace
+======
+
+strace -o ng1 -y -yy -f -ff -v -s 1024 -e trace=file -p 3847
+strace -o 1/ng -y -yy -f -ff -v -s 1024 -e trace=file -e trace=network -p 3064
+docker run --name ng --pid host -v /some/content:/usr/share/nginx/html:ro -d nginx
+
+
+########
+
+nginx -- ng1
+============
+
+strace -o ng1 -y -yy -f -ff -v -s 1024 -e trace=file,network,process -p 3064
+docker run --name ng1 --pid host -p 8080:80 -v /vagrant:/usr/share/nginx/html:z -it nginx
+
+python3 partition.py nginx wnginx1 ng1 13450 /root/traces/big/nginx/ng1/ng1 /root/code/cexec/client /root/code/cexec/server
+
+Original output
+---------------
+
+2016/01/20 20:56:24 [error] 8#8: *1 directory index of "/usr/share/nginx/html/" is forbidden, client: 192.168.33.1, server: localhost, request: "GET / HTTP/1.1", host: "192.168.33.210:8080"
+192.168.33.1 - - [20/Jan/2016:20:56:24 +0000] "GET / HTTP/1.1" 403 168 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0" "-"
+192.168.33.1 - - [20/Jan/2016:20:56:55 +0000] "GET /scratch.py HTTP/1.1" 200 1247 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0" "-"
+192.168.33.1 - - [20/Jan/2016:20:57:03 +0000] "GET /Vagrantfile HTTP/1.1" 200 3328 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0" "-"
+192.168.33.1 - - [20/Jan/2016:20:57:24 +0000] "GET /cexec HTTP/1.1" 301 184 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0" "-"
+2016/01/20 20:57:45 [error] 8#8: *1 directory index of "/usr/share/nginx/html/cexec/" is forbidden, client: 192.168.33.1, server: localhost, request: "GET /cexec/ HTTP/1.1", host: "192.168.33.210:8080"
+192.168.33.1 - - [20/Jan/2016:20:57:45 +0000] "GET /cexec/ HTTP/1.1" 403 168 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0" "-"
+192.168.33.1 - - [20/Jan/2016:20:57:58 +0000] "GET /cexec/server.c HTTP/1.1" 200 12366 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0" "-"
+192.168.33.1 - - [20/Jan/2016:20:58:05 +0000] "GET /cexec/server.c HTTP/1.1" 200 12366 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0" "-"
+192.168.33.1 - - [20/Jan/2016:20:58:26 +0000] "GET /scratch.txt HTTP/1.1" 304 0 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:43.0) Gecko/20100101 Firefox/43.0" "-"
+
+
+mymediawiki -- mmw1
+===================
+
+built from dockerfile in tests/mediawiki
+
+docker run -it --name mmw1 --pid host -p 443:443 -p 80:80 -v /var/www/images -v /var/www/config -v /etc/pki/tls -v /var/lib/mysql -e APP_NAME='testapp.com' -e APACHE_SVRALIAS='www.testapp.com localhost' -e MYSQL_SERVER='mysql' -e MYSQL_PASS='PAssw0rd' -e MYSQL_DB='testapp' -e APP_USER='admin' -e APP_PASS='PAssw0rd' -e WP_KEY='I Love Flappyjacks' mymw
+
+python3 partition.py mymw wmmw1 mmw1 8886 /root/traces/big/mymediawiki/mmw1/mmw1 /root/code/cexec/client /root/code/cexec/server
+
+
+#########
+
+record kinds
+============
+
+open
+----
+
+type=PROCTITLE msg=audit(11/24/2015 07:52:50.221:310579) : proctitle=autrace ./fchdir
+type=PATH msg=audit(11/24/2015 07:52:50.221:310579) : item=0 name=/lib64/libc.so.6 inode=656134 dev=08:01 mode=file,755 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:lib_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 07:52:50.221:310579) :  cwd=/tmp
+type=SYSCALL msg=audit(11/24/2015 07:52:50.221:310579) : arch=x86_64 syscall=open success=yes exit=3 a0=0x7fa607fca640 a1=O_RDONLY|O_CLOEXEC a2=0x7fa607fcd148 a3=0x7fa607fc9869 items=1 ppid=8555 pid=8557 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=fchdir exe=/tmp/fchdir subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+
+
+type=PROCTITLE msg=audit(11/24/2015 07:52:50.221:310595) : proctitle=autrace ./fchdir
+type=PATH msg=audit(11/24/2015 07:52:50.221:310595) : item=0 name=dir/foo inode=1441809 dev=08:01 mode=dir,755 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 07:52:50.221:310595) :  cwd=/tmp
+type=SYSCALL msg=audit(11/24/2015 07:52:50.221:310595) : arch=x86_64 syscall=open success=yes exit=3 a0=0x4007c0 a1=O_RDONLY a2=0x7ffdfe95da48 a3=0x697 items=1 ppid=8555 pid=8557 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=fchdir exe=/tmp/fchdir subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+
+
+unlinkat
+--------
+
+### with AT_FDCWD
+
+type=PROCTITLE msg=audit(11/24/2015 07:52:50.221:310597) : proctitle=autrace ./fchdir
+type=PATH msg=audit(11/24/2015 07:52:50.221:310597) : item=1 name=file inode=1441803 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 07:52:50.221:310597) : item=0 name=/tmp/dir/foo inode=1441809 dev=08:01 mode=dir,755 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 07:52:50.221:310597) :  cwd=/tmp/dir/foo
+type=SYSCALL msg=audit(11/24/2015 07:52:50.221:310597) : arch=x86_64 syscall=unlinkat success=yes exit=0 a0=0xffffff9c a1=0x4007c8 a2=0x0 a3=0x15b items=2 ppid=8555 pid=8557 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=fchdir exe=/tmp/fchdir subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+
+
+rename
+------
+
+type=PROCTITLE msg=audit(11/24/2015 09:45:50.883:310709) : proctitle=autrace /bin/mv a b
+type=PATH msg=audit(11/24/2015 09:45:50.883:310709) : item=3 name=b inode=1441803 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 09:45:50.883:310709) : item=2 name=a inode=1441803 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 09:45:50.883:310709) : item=1 name=/tmp inode=1441793 dev=08:01 mode=dir,sticky,777 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 09:45:50.883:310709) : item=0 name=/tmp inode=1441793 dev=08:01 mode=dir,sticky,777 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 09:45:50.883:310709) :  cwd=/tmp
+type=SYSCALL msg=audit(11/24/2015 09:45:50.883:310709) : arch=x86_64 syscall=rename success=yes exit=0 a0=0x7ffcf7afa7b4 a1=0x7ffcf7afa7b6 a2=0x0 a3=0x1 items=4 ppid=8685 pid=8687 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=mv exe=/usr/bin/mv subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+
+
+
+linkat
+------
+
+### linkat(AT_FDCWD, "a", AT_FDCWD, "b", AT_SYMLINK_FOLLOW) = 0
+
+type=PROCTITLE msg=audit(11/24/2015 09:56:25.337:310820) : proctitle=autrace /bin/cp -l a b
+type=PATH msg=audit(11/24/2015 09:56:25.337:310820) : item=2 name=b inode=1441803 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 09:56:25.337:310820) : item=1 name=/tmp inode=1441793 dev=08:01 mode=dir,sticky,777 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 09:56:25.337:310820) : item=0 name=a inode=1441803 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 09:56:25.337:310820) :  cwd=/tmp
+type=SYSCALL msg=audit(11/24/2015 09:56:25.337:310820) : arch=x86_64 syscall=linkat success=yes exit=0 a0=0xffffff9c a1=0x7fffdb22d7b4 a2=0xffffff9c a3=0x7fffdb22d7b6 items=3 ppid=8710 pid=8712 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=cp exe=/usr/bin/cp subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+
+
+link,symlink
+------------
+
+### link("a", "b")                          = 0
+
+type=PROCTITLE msg=audit(11/24/2015 10:03:20.124:310860) : proctitle=autrace ./link
+type=PATH msg=audit(11/24/2015 10:03:20.124:310860) : item=2 name=b inode=1441803 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 10:03:20.124:310860) : item=1 name=/tmp inode=1441793 dev=08:01 mode=dir,sticky,777 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 10:03:20.124:310860) : item=0 name=a inode=1441803 dev=08:01 mode=file,644 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 10:03:20.124:310860) :  cwd=/tmp
+type=SYSCALL msg=audit(11/24/2015 10:03:20.124:310860) : arch=x86_64 syscall=link success=yes exit=0 a0=0x4006e2 a1=0x4006e0 a2=0x7ffe69ecff38 a3=0x79d items=3 ppid=8753 pid=8755 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=link exe=/tmp/link subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+
+
+### symlink("a", "b")                       = 0
+%% Note that path "a" is not checked below
+
+type=PROCTITLE msg=audit(11/24/2015 10:11:20.189:310967) : proctitle=autrace /bin/cp -s a b
+type=PATH msg=audit(11/24/2015 10:11:20.189:310967) : item=2 name=b inode=1441820 dev=08:01 mode=link,777 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:user_tmp_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 10:11:20.189:310967) : item=1 name=/tmp inode=1441793 dev=08:01 mode=dir,sticky,777 ouid=root ogid=root rdev=00:00 obj=system_u:object_r:tmp_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 10:11:20.189:310967) : item=0 name=a nametype=UNKNOWN
+type=CWD msg=audit(11/24/2015 10:11:20.189:310967) :  cwd=/tmp
+type=SYSCALL msg=audit(11/24/2015 10:11:20.189:310967) : arch=x86_64 syscall=symlink success=yes exit=0 a0=0x7ffd1534f7b4 a1=0x7ffd1534f7b6 a2=0x0 a3=0x7f633e63bba8 items=3 ppid=8785 pid=8787 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=cp exe=/usr/bin/cp subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+
+
+all
+---
+
+### open("file", O_RDONLY|O_CREAT, 03777723531231170) = 3
+### close(3)                                = 0
+### chmod("file", 01411)                    = 0
+### chown("file", 1001, 0)                  = 0
+### lchown("file", 0, 0)                    = 0
+### truncate("file", 1024)                  = 0
+### mkdir("dir", 01274)                     = 0
+### rmdir("dir")                            = 0
+### rename("file", "file2")                 = 0
+### link("file2", "file")                   = 0
+### unlink("file2")                         = 0
+### symlink("file", "file2")                = 0
+### unlink("file2")                         = 0
+### mkdirat(AT_FDCWD, "dir", 01274)         = 0
+### openat(AT_FDCWD, "dir", O_RDONLY)       = 3
+### mkdirat(3, "foo", 01274)                = 0
+### openat(3, "foo", O_RDONLY)              = 4
+### linkat(AT_FDCWD, "file", 4, "file", 0)  = 0
+### linkat(4, "file", AT_FDCWD, "file2", 0) = 0
+### linkat(4, "file", 3, "file", 0)         = 0
+### linkat(AT_FDCWD, "file", AT_FDCWD, "file3", 0) = 0
+### unlinkat(AT_FDCWD, "file3", 0)          = 0
+### unlinkat(3, "file", 0)                  = 0
+### renameat(AT_FDCWD, "file2", AT_FDCWD, "file3") = 0
+### renameat(4, "file", 3, "file")          = 0
+### renameat(AT_FDCWD, "file3", 4, "file")  = 0
+### symlinkat("file", AT_FDCWD, "file2")    = 0
+### symlinkat("file", 3, "file2")           = 0
+
+
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.914:312885) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.914:312885) : item=1 name=file inode=1572888 dev=08:01 mode=file,suid,sgid,sticky,750 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.914:312885) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.914:312885) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.914:312885) : arch=x86_64 syscall=open success=yes exit=3 a0=0x400e00 a1=O_RDONLY|O_CREAT a2=suid,sgid,sticky,0770 a3=0x697 items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.914:312886) : proctitle=autrace ./all
+type=SYSCALL msg=audit(11/24/2015 19:47:32.914:312886) : arch=x86_64 syscall=close success=yes exit=0 a0=0x3 a1=0x40 a2=0x7fffe97a8ff8 a3=0x68a items=0 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.914:312887) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.914:312887) : item=0 name=file inode=1572888 dev=08:01 mode=file,suid,sgid,sticky,750 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.914:312887) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.914:312887) : arch=x86_64 syscall=chmod success=yes exit=0 a0=0x400e00 a1=sticky,0411 a2=0x7fffe97a8ff8 a3=0x24f items=1 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.914:312888) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.914:312888) : item=0 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.914:312888) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.914:312888) : arch=x86_64 syscall=chown success=yes exit=0 a0=0x400e00 a1=vagrant a2=root a3=0x60a items=1 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312889) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312889) : item=0 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=vagrant ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.915:312889) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312889) : arch=x86_64 syscall=lchown success=yes exit=0 a0=0x400e00 a1=0x0 a2=0x0 a3=0x292 items=1 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312890) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312890) : item=0 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.915:312890) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312890) : arch=x86_64 syscall=truncate success=yes exit=0 a0=0x400e00 a1=0x400 a2=0x0 a3=0x2be items=1 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312891) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312891) : item=1 name=dir inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312891) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.915:312891) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312891) : arch=x86_64 syscall=mkdir success=yes exit=0 a0=0x400e05 a1=sticky,0274 a2=0x0 a3=0x1e2 items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312892) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312892) : item=1 name=dir inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312892) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.915:312892) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312892) : arch=x86_64 syscall=rmdir success=yes exit=0 a0=0x400e05 a1=0x2bc a2=0x0 a3=0x36c items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312893) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312893) : item=3 name=file2 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312893) : item=2 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312893) : item=1 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.915:312893) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.915:312893) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312893) : arch=x86_64 syscall=rename success=yes exit=0 a0=0x400e00 a1=0x400e09 a2=0x0 a3=0x63a items=4 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312894) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312894) : item=2 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312894) : item=1 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.915:312894) : item=0 name=file2 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.915:312894) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312894) : arch=x86_64 syscall=link success=yes exit=0 a0=0x400e09 a1=0x400e00 a2=0x0 a3=0x79d items=3 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312895) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312895) : item=1 name=file2 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312895) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.915:312895) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312895) : arch=x86_64 syscall=unlink success=yes exit=0 a0=0x400e09 a1=0x400e00 a2=0x0 a3=0x1d1 items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312896) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312896) : item=2 name=file2 inode=1572889 dev=08:01 mode=link,777 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312896) : item=1 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.915:312896) : item=0 name=file nametype=UNKNOWN
+type=CWD msg=audit(11/24/2015 19:47:32.915:312896) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312896) : arch=x86_64 syscall=symlink success=yes exit=0 a0=0x400e00 a1=0x400e09 a2=0x0 a3=0x2b8 items=3 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312897) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312897) : item=1 name=file2 inode=1572889 dev=08:01 mode=link,777 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312897) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.915:312897) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312897) : arch=x86_64 syscall=unlink success=yes exit=0 a0=0x400e09 a1=0x400e09 a2=0x0 a3=0x2b8 items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312898) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312898) : item=1 name=dir inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312898) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.915:312898) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312898) : arch=x86_64 syscall=mkdirat success=yes exit=0 a0=0xffffff9c a1=0x400e05 a2=sticky,0274 a3=0x56a items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312899) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312899) : item=0 name=dir inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.915:312899) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312899) : arch=x86_64 syscall=openat success=yes exit=3 a0=0xffffffffffffff9c a1=0x400e05 a2=O_RDONLY a3=0x0 items=1 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312900) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312900) : item=1 name=foo inode=1572890 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312900) : item=0 name=/vagrant/sctests inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.915:312900) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312900) : arch=x86_64 syscall=mkdirat success=yes exit=0 a0=0x3 a1=0x400e0f a2=sticky,0274 a3=0x0 items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312901) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312901) : item=0 name=foo inode=1572890 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.915:312901) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312901) : arch=x86_64 syscall=openat success=yes exit=4 a0=0x3 a1=0x400e0f a2=O_RDONLY a3=0x0 items=1 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.915:312902) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.915:312902) : item=2 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.915:312902) : item=1 name=/vagrant/sctests inode=1572890 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.915:312902) : item=0 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.915:312902) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.915:312902) : arch=x86_64 syscall=linkat success=yes exit=0 a0=0xffffff9c a1=0x400e00 a2=0x4 a3=0x400e00 items=3 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312903) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312903) : item=2 name=file2 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312903) : item=1 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.917:312903) : item=0 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.917:312903) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312903) : arch=x86_64 syscall=linkat success=yes exit=0 a0=0x4 a1=0x400e00 a2=0xffffff9c a3=0x400e09 items=3 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312904) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312904) : item=2 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312904) : item=1 name=/vagrant/sctests inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.917:312904) : item=0 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.917:312904) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312904) : arch=x86_64 syscall=linkat success=yes exit=0 a0=0x4 a1=0x400e00 a2=0x3 a3=0x400e00 items=3 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312905) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312905) : item=2 name=file3 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312905) : item=1 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.917:312905) : item=0 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=NORMAL
+type=CWD msg=audit(11/24/2015 19:47:32.917:312905) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312905) : arch=x86_64 syscall=linkat success=yes exit=0 a0=0xffffff9c a1=0x400e00 a2=0xffffff9c a3=0x400e13 items=3 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312906) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312906) : item=1 name=file3 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312906) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.917:312906) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312906) : arch=x86_64 syscall=unlinkat success=yes exit=0 a0=0xffffff9c a1=0x400e13 a2=0x0 a3=0x15b items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312907) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312907) : item=1 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312907) : item=0 name=/vagrant/sctests inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.917:312907) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312907) : arch=x86_64 syscall=unlinkat success=yes exit=0 a0=0x3 a1=0x400e00 a2=0x0 a3=0x15b items=2 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312908) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312908) : item=3 name=file3 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312908) : item=2 name=file2 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312908) : item=1 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.917:312908) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.917:312908) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312908) : arch=x86_64 syscall=renameat success=yes exit=0 a0=0xffffff9c a1=0x400e09 a2=0xffffff9c a3=0x400e13 items=4 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312909) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312909) : item=3 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312909) : item=2 name=(null) inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312909) : item=1 name=(null) inode=1572890 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.917:312909) : item=0 name=/vagrant/sctests inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.917:312909) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312909) : arch=x86_64 syscall=renameat success=yes exit=0 a0=0x4 a1=0x400e00 a2=0x3 a3=0x400e00 items=4 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312910) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312910) : item=3 name=file inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312910) : item=2 name=file3 inode=1572888 dev=08:01 mode=file,sticky,411 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=DELETE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312910) : item=1 name=/vagrant/sctests inode=1572890 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.917:312910) : item=0 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=CWD msg=audit(11/24/2015 19:47:32.917:312910) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312910) : arch=x86_64 syscall=renameat success=yes exit=0 a0=0xffffff9c a1=0x400e13 a2=0x4 a3=0x400e00 items=4 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312911) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312911) : item=2 name=file2 inode=1572891 dev=08:01 mode=link,777 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312911) : item=1 name=/vagrant/sctests inode=1572879 dev=08:01 mode=dir,755 ouid=vagrant ogid=vagrant rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.917:312911) : item=0 name=file nametype=UNKNOWN
+type=CWD msg=audit(11/24/2015 19:47:32.917:312911) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312911) : arch=x86_64 syscall=symlinkat success=yes exit=0 a0=0x400e00 a1=0xffffff9c a2=0x400e09 a3=0x47b items=3 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----
+type=PROCTITLE msg=audit(11/24/2015 19:47:32.917:312912) : proctitle=autrace ./all
+type=PATH msg=audit(11/24/2015 19:47:32.917:312912) : item=2 name=file2 inode=1572892 dev=08:01 mode=link,777 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=CREATE
+type=PATH msg=audit(11/24/2015 19:47:32.917:312912) : item=1 name=/vagrant/sctests inode=1572889 dev=08:01 mode=dir,sticky,254 ouid=root ogid=root rdev=00:00 obj=unconfined_u:object_r:default_t:s0 nametype=PARENT
+type=PATH msg=audit(11/24/2015 19:47:32.917:312912) : item=0 name=file nametype=UNKNOWN
+type=CWD msg=audit(11/24/2015 19:47:32.917:312912) :  cwd=/vagrant/sctests
+type=SYSCALL msg=audit(11/24/2015 19:47:32.917:312912) : arch=x86_64 syscall=symlinkat success=yes exit=0 a0=0x400e00 a1=0x3 a2=0x400e09 a3=0x47b items=3 ppid=15103 pid=15105 auid=vagrant uid=root gid=root euid=root suid=root fsuid=root egid=root sgid=root fsgid=root tty=pts1 ses=2 comm=all exe=/vagrant/sctests/all subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 key=(null)
+----

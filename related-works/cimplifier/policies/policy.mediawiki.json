@@ -1,0 +1,19 @@
+[
+    [
+        "/usr/bin/convert"
+    ],
+    [
+        "/usr/bin/mysqld_safe",
+        "/usr/libexec/mysqld",
+        "/usr/bin/mysql",
+        "/usr/bin/mysqladmin",
+        "/etc/init.d/mysqld",
+        "/usr/bin/mysql_install_db"
+    ],
+    [
+        "/usr/bin/openssl",
+        "/usr/sbin/httpd",
+        "/usr/sbin/apachectl",
+        "/etc/init.d/httpd"
+    ]
+]
