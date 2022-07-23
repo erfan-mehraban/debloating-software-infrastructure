@@ -2,7 +2,7 @@
 
 This directory consists of 2 main elements: file access simulation tool + tracing tools to record file access.
 
-## Service Load Similator: Loder
+## Service Load Simulator: Loder
 Loder is a benchmarking tool to apply file access and execution tasks at scale. Please refer to [loder/README.md](./loder/README.md) for more information.
 
 ## Tracer Tools
