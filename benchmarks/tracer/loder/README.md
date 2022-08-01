@@ -7,6 +7,9 @@ Containes an array of tasks with the following keys:
 
 - kind: what kind of tasks should be executed.
   - read: read first 4 bytes of files
-  - ...
+  - write: write 4 bytes in a file
+  - execute-subproc: run another binary
+  - execute-subthread: run a binary in a os thread
+  - create-delete: create a file and then delete it
 - files: arrays of files paths which task action should apply to
 - scale: how many times task action will apply

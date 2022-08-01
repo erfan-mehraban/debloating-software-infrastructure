@@ -10,11 +10,11 @@
 - kind: execute-subthread
   scale: 1
   files:
-  - /bin/ls
+  - /bin/echo
 - kind: create-delete
   scale: 1
   files:
-  - /tmp/some-file
+  - /tmp/deleted-file
 - kind: write
   scale: 1
   files:

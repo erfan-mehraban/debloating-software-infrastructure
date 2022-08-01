@@ -5,6 +5,9 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/exec"
+	"runtime"
+	"sync"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -56,45 +59,86 @@ type Task struct {
 
 func apply(t Task) error {
 	for i := 1; i <= t.Scale; i++ {
-		var err error
+		taskFunc := func(string) error { return nil }
 		switch t.Kind {
 		case "read":
-			err = applyRead(t.Files)
+			taskFunc = applyRead
 		case "write":
-			err = applyWrite(t.Files)
+			taskFunc = applyWrite
+		case "execute-subproc":
+			taskFunc = applyExecuteSubproc
+		case "execute-subthread":
+			taskFunc = applyExecuteSubthread
+		case "create-delete":
+			taskFunc = applyCreateDelete
 		}
-		if err != nil {
-			return err
+		for _, filePath := range t.Files {
+			err := taskFunc(filePath)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	return nil
 }
 
-func applyRead(filesPath []string) error {
-	for _, filePath := range filesPath {
-		f, err := os.Open(filePath)
-		if err != nil {
-			return nil
-		}
-		defer f.Close()
-		// read first 4 byte
-		_, err = bufio.NewReader(f).Peek(4)
-		if err != nil {
-			return nil
-		}
+func applyRead(filePath string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	// read first 4 byte
+	_, err = bufio.NewReader(f).Peek(4)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func applyWrite(filesPath []string) error {
-	for _, filePath := range filesPath {
-		content := make([]byte, 4)
-		rand.Read(content)
-		err := os.WriteFile(filePath, content, 0644)
-		if err != nil {
-			return nil
-		}
+func applyWrite(filePath string) error {
+	content := make([]byte, 4)
+	rand.Read(content)
+	err := os.WriteFile(filePath, content, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func applyExecuteSubproc(executablePath string) error {
+	err := exec.Command(executablePath).Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func applyExecuteSubthread(executablePath string) error {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	var err error
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		runtime.LockOSThread()
+		defer runtime.UnlockOSThread()
+		err = applyExecuteSubproc(executablePath)
+		wg.Done()
+	}()
+	return err
+}
+
+func applyCreateDelete(filePath string) error {
+	f, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	f.Close()
+	err = os.Remove(filePath)
+	if err != nil {
+		return err
 	}
 	return nil
 }
