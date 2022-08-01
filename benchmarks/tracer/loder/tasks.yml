@@ -1,6 +1,21 @@
 - kind: read
   scale: 1
   files:
-  -  /var/log/apt/history.log
+  - /var/log/apt/history.log
   - /usr/lib/python3.9/numbers.py
-  
+- kind: execute-subproc
+  scale: 1
+  files:
+  - /bin/ls
+- kind: execute-subthread
+  scale: 1
+  files:
+  - /bin/ls
+- kind: create-delete
+  scale: 1
+  files:
+  - /tmp/some-file
+- kind: write
+  scale: 1
+  files:
+  - /tmp/new-file

@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"io/ioutil"
+	"math/rand"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -54,14 +55,19 @@ type Task struct {
 }
 
 func apply(t Task) error {
-	if t.Kind == "read" {
-		for i := 1; i <= t.Scale; i++ {
-			err := applyRead(t.Files)
-			if err != nil {
-				return err
-			}
+	for i := 1; i <= t.Scale; i++ {
+		var err error
+		switch t.Kind {
+		case "read":
+			err = applyRead(t.Files)
+		case "write":
+			err = applyWrite(t.Files)
+		}
+		if err != nil {
+			return err
 		}
 	}
+
 	return nil
 }
 
@@ -74,6 +80,18 @@ func applyRead(filesPath []string) error {
 		defer f.Close()
 		// read first 4 byte
 		_, err = bufio.NewReader(f).Peek(4)
+		if err != nil {
+			return nil
+		}
+	}
+	return nil
+}
+
+func applyWrite(filesPath []string) error {
+	for _, filePath := range filesPath {
+		content := make([]byte, 4)
+		rand.Read(content)
+		err := os.WriteFile(filePath, content, 0644)
 		if err != nil {
 			return nil
 		}
