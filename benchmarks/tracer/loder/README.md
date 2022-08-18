@@ -11,6 +11,7 @@ Containes an array of tasks with the following keys:
   - execute-subproc: run another binary (execve syscalls)
   - execute-subthread: run a binary in a os thread
   - create-delete: create a file and then delete it
-  - syscall-fork: fork a procces. used for fork + clone + vfork syscalls
+  - fork: fork a procces. use fork + clone + vfork syscalls
+  - chmod: use fchmodat syscall. (*NOTE*: file should exist.)
 - files: arrays of files paths which task action should apply to
 - scale: how many times task action will apply

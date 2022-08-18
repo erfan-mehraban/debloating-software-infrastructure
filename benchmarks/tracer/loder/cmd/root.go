@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -76,8 +75,10 @@ func apply(t Task) error {
 			taskFunc = applyExecuteSubthread
 		case "create-delete":
 			taskFunc = applyCreateDelete
-		case "syscall-fork":
+		case "fork":
 			taskFunc = applyFork
+		case "chmod":
+			taskFunc = applyFchmodat
 		}
 		for _, filePath := range t.Files {
 			err := taskFunc(filePath)
@@ -152,6 +153,10 @@ func applyCreateDelete(filePath string) error {
 
 func applyFork(filePath string) error {
 	_, err := syscall.ForkExec(filePath, nil, nil)
-	time.Sleep(time.Second)
+	return err
+}
+
+func applyFchmodat(filePath string) error {
+	err := os.Chmod(filePath, 644)
 	return err
 }

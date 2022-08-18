@@ -19,7 +19,11 @@
   scale: 1
   files:
   - /tmp/new-file
-- kind: syscall-fork # fork + clone + vfork
+- kind: fork
   scale: 1
   files:
   - /bin/echo
+- kind: chmod
+  scale: 1
+  files:
+  - /tmp/new-file
