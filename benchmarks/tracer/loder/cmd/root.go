@@ -78,7 +78,9 @@ func apply(t Task) error {
 		case "fork":
 			taskFunc = applyFork
 		case "chmod":
-			taskFunc = applyFchmodat
+			taskFunc = applyChmod
+		case "chown":
+			taskFunc = applyChown
 		}
 		for _, filePath := range t.Files {
 			err := taskFunc(filePath)
@@ -156,7 +158,12 @@ func applyFork(filePath string) error {
 	return err
 }
 
-func applyFchmodat(filePath string) error {
+func applyChmod(filePath string) error {
 	err := os.Chmod(filePath, 644)
+	return err
+}
+
+func applyChown(filePath string) error {
+	err := os.Chown(filePath, -1, -1)
 	return err
 }

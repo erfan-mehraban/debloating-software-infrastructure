@@ -27,3 +27,7 @@
   scale: 1
   files:
   - /tmp/new-file
+- kind: chown
+  scale: 1
+  files:
+  - /tmp/new-file

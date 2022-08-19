@@ -13,5 +13,6 @@ Containes an array of tasks with the following keys:
   - create-delete: create a file and then delete it
   - fork: fork a procces. use fork + clone + vfork syscalls
   - chmod: use fchmodat syscall. (*NOTE*: file should exist.)
+  - chown: use fchownat syscall. (*NOTE*: file should exist.)
 - files: arrays of files paths which task action should apply to
 - scale: how many times task action will apply
