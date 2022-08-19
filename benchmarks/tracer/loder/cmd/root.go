@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"io/fs"
 	"io/ioutil"
 	"math/rand"
 	"os"
@@ -36,7 +37,7 @@ var (
 			for _, task := range tasks {
 				err = apply(task)
 				if err != nil {
-					return err
+					panic(err)
 				}
 			}
 			return nil
@@ -81,6 +82,10 @@ func apply(t Task) error {
 			taskFunc = applyChmod
 		case "chown":
 			taskFunc = applyChown
+		case "mkdir":
+			taskFunc = applyMkdir
+		case "remove":
+			taskFunc = remove
 		}
 		for _, filePath := range t.Files {
 			err := taskFunc(filePath)
@@ -159,11 +164,17 @@ func applyFork(filePath string) error {
 }
 
 func applyChmod(filePath string) error {
-	err := os.Chmod(filePath, 644)
-	return err
+	return os.Chmod(filePath, 0644)
 }
 
 func applyChown(filePath string) error {
-	err := os.Chown(filePath, -1, -1)
-	return err
+	return os.Chown(filePath, -1, -1)
+}
+
+func applyMkdir(filePath string) error {
+	return os.Mkdir(filePath, fs.FileMode(0777))
+}
+
+func remove(filePath string) error {
+	return os.Remove(filePath)
 }

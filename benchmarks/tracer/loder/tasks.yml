@@ -31,3 +31,12 @@
   scale: 1
   files:
   - /tmp/new-file
+- kind: mkdir
+  scale: 1
+  files:
+  - /tmp/new-dir
+- kind: remove
+  scale: 1
+  files:
+  - /tmp/new-dir/new-file
+  - /tmp/new-dir
