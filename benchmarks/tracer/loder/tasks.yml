@@ -35,15 +35,10 @@
   scale: 1
   files:
   - /tmp/new-dir
-- kind: remove
+- kind: write
   scale: 1
   files:
   - /tmp/new-dir/new-file
-  - /tmp/new-dir
-- kind: rename
-  scale: 1
-  files:
-  - /tmp/new-file
 - kind: hard-link
   scale: 1
   files:
@@ -52,3 +47,14 @@
   scale: 1
   files:
   - /tmp/new-file
+- kind: rename
+  scale: 1
+  files:
+  - /tmp/new-file
+- kind: remove
+  scale: 1
+  files:
+  - /tmp/new-dir/new-file
+  - /tmp/new-dir
+  - /tmp/new-file-hard-link
+  - /tmp/new-file-soft-link
