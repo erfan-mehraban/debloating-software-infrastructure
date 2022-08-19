@@ -17,5 +17,7 @@ Containes an array of tasks with the following keys:
   - mkdir: create directory
   - remove: delete a file or directory. may use unlink or rmdir syscall
   - rename: rename file or folder and add `-renamed` to it
+  - hard-link: create hard link for file inode in the target directory with `-hard-link` appended (*NOTE*: file should exist.)
+  - soft-link: create symbolic link for files in the target directory with `-soft-link` appended (*NOTE*: file should exist.)
 - files: arrays of files paths which task action should apply to
 - scale: how many times task action will apply

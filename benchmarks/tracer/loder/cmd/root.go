@@ -88,6 +88,10 @@ func apply(t Task) error {
 			taskFunc = remove
 		case "rename":
 			taskFunc = rename
+		case "hard-link":
+			taskFunc = hardLink
+		case "soft-link":
+			taskFunc = softLink
 		}
 		for _, filePath := range t.Files {
 			err := taskFunc(filePath)
@@ -183,4 +187,12 @@ func remove(filePath string) error {
 
 func rename(filePath string) error {
 	return os.Rename(filePath, filePath+"-renamed")
+}
+
+func hardLink(filePath string) error {
+	return os.Link(filePath, filePath+"-hard-link")
+}
+
+func softLink(filePath string) error {
+	return os.Symlink(filePath, filePath+"-soft-link")
 }

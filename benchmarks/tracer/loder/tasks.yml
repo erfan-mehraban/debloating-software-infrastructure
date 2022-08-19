@@ -44,3 +44,11 @@
   scale: 1
   files:
   - /tmp/new-file
+- kind: hard-link
+  scale: 1
+  files:
+  - /tmp/new-file
+- kind: soft-link
+  scale: 1
+  files:
+  - /tmp/new-file
