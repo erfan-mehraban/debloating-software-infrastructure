@@ -40,3 +40,7 @@
   files:
   - /tmp/new-dir/new-file
   - /tmp/new-dir
+- kind: rename
+  scale: 1
+  files:
+  - /tmp/new-file

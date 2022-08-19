@@ -86,6 +86,8 @@ func apply(t Task) error {
 			taskFunc = applyMkdir
 		case "remove":
 			taskFunc = remove
+		case "rename":
+			taskFunc = rename
 		}
 		for _, filePath := range t.Files {
 			err := taskFunc(filePath)
@@ -177,4 +179,8 @@ func applyMkdir(filePath string) error {
 
 func remove(filePath string) error {
 	return os.Remove(filePath)
+}
+
+func rename(filePath string) error {
+	return os.Rename(filePath, filePath+"-renamed")
 }

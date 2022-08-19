@@ -16,5 +16,6 @@ Containes an array of tasks with the following keys:
   - chown: use fchownat syscall. (*NOTE*: file should exist.)
   - mkdir: create directory
   - remove: delete a file or directory. may use unlink or rmdir syscall
+  - rename: rename file or folder and add `-renamed` to it
 - files: arrays of files paths which task action should apply to
 - scale: how many times task action will apply
