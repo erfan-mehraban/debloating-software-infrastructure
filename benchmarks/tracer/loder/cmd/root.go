@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"fmt"
 	"io/fs"
 	"io/ioutil"
 	"math/rand"
@@ -10,6 +11,7 @@ import (
 	"os/signal"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -40,9 +42,11 @@ var (
 			shutdown := make(chan struct{})
 
 			wg := sync.WaitGroup{}
+			workerId := uint32(0)
 			for i := 0; i < workers; i++ {
 				wg.Add(1)
 				go func() {
+					atomic.AddUint32(&workerId, 1)
 				infinite:
 					for {
 						select {
@@ -50,10 +54,10 @@ var (
 							break infinite
 						default:
 							for _, task := range tasks {
-								err = apply(task)
+								err = apply(task, workerId)
 								if err != nil {
 									println(err.Error())
-									panic(err)
+									break infinite
 								}
 							}
 						}
@@ -88,7 +92,7 @@ type Task struct {
 	Scale int
 }
 
-func apply(t Task) error {
+func apply(t Task, workerId uint32) error {
 	for i := 1; i <= t.Scale; i++ {
 		taskFunc := func(string) error { return nil }
 		switch t.Kind {
@@ -120,7 +124,8 @@ func apply(t Task) error {
 			taskFunc = softLink
 		}
 		for _, filePath := range t.Files {
-			err := taskFunc(filePath)
+			p := fmt.Sprintf(filePath, workerId)
+			err := taskFunc(p)
 			if err != nil {
 				return err
 			}
