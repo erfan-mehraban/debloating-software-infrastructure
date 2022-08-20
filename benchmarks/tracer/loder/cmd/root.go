@@ -10,9 +10,11 @@ import (
 	"os/exec"
 	"os/signal"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -42,9 +44,11 @@ var (
 			shutdown := make(chan struct{})
 
 			wg := sync.WaitGroup{}
+			wg.Add(workers)
+
 			workerId := uint32(0)
+			startCollector(&wg, shutdown)
 			for i := 0; i < workers; i++ {
-				wg.Add(1)
 				go func() {
 					atomic.AddUint32(&workerId, 1)
 				infinite:
@@ -54,7 +58,9 @@ var (
 							break infinite
 						default:
 							for _, task := range tasks {
+								s := time.Now()
 								err = apply(task, workerId)
+								observeDuration(time.Now().Sub(s))
 								if err != nil {
 									println(err.Error())
 									break infinite
@@ -67,7 +73,6 @@ var (
 			}
 
 			<-sigs
-			println("sig recieved")
 			close(shutdown)
 			wg.Wait()
 			return nil
@@ -84,6 +89,11 @@ func Execute() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func TruncatingSprintf(str string, args ...interface{}) string {
+	n := strings.Count(str, "%s")
+	return fmt.Sprintf(str, args[0:n]...)
 }
 
 type Task struct {
@@ -124,7 +134,7 @@ func apply(t Task, workerId uint32) error {
 			taskFunc = softLink
 		}
 		for _, filePath := range t.Files {
-			p := fmt.Sprintf(filePath, workerId)
+			p := TruncatingSprintf(filePath, workerId)
 			err := taskFunc(p)
 			if err != nil {
 				return err
