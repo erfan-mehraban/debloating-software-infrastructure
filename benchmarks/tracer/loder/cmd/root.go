@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"os/signal"
 	"runtime"
 	"sync"
 	"syscall"
@@ -16,37 +17,62 @@ import (
 )
 
 var (
-	tasksFilePath string
-	rootCmd       = &cobra.Command{
+	workers int
+	rootCmd = &cobra.Command{
 		Use:   "loder",
 		Short: "Apply a load to access os files and execute processes in respect to tasks file.",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			path, err := cmd.Flags().GetString("tasks")
+
+			yfile, err := ioutil.ReadFile(args[0])
 			if err != nil {
 				return err
 			}
-			yfile, err := ioutil.ReadFile(path)
-			if err != nil {
-				return err
-			}
+
 			var tasks []Task
 			err = yaml.Unmarshal(yfile, &tasks)
 			if err != nil {
 				return err
 			}
-			for _, task := range tasks {
-				err = apply(task)
-				if err != nil {
-					panic(err)
-				}
+
+			sigs := make(chan os.Signal, 1)
+			signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+			shutdown := make(chan struct{})
+
+			wg := sync.WaitGroup{}
+			for i := 0; i < workers; i++ {
+				wg.Add(1)
+				go func() {
+				infinite:
+					for {
+						select {
+						case <-shutdown:
+							break infinite
+						default:
+							for _, task := range tasks {
+								err = apply(task)
+								if err != nil {
+									println(err.Error())
+									panic(err)
+								}
+							}
+						}
+					}
+					wg.Done()
+				}()
 			}
+
+			<-sigs
+			println("sig recieved")
+			close(shutdown)
+			wg.Wait()
 			return nil
 		},
 	}
 )
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&tasksFilePath, "tasks", "./tasks.yml", "path to tasks yaml file")
+	rootCmd.Flags().IntVar(&workers, "worker", 1, "number of concurrent workers.")
 }
 
 func Execute() {
