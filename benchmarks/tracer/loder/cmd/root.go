@@ -12,7 +12,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -46,11 +45,9 @@ var (
 			wg := sync.WaitGroup{}
 			wg.Add(workers)
 
-			workerId := uint32(0)
 			startCollector(&wg, shutdown)
 			for i := 0; i < workers; i++ {
-				go func() {
-					atomic.AddUint32(&workerId, 1)
+				go func(workerId int) {
 				infinite:
 					for {
 						select {
@@ -61,6 +58,7 @@ var (
 							for _, task := range tasks {
 								err = apply(task, workerId)
 								if err != nil {
+									fmt.Printf("error on %d: ", workerId)
 									fmt.Println(err.Error())
 									close(sigs)
 									break infinite
@@ -70,7 +68,7 @@ var (
 						}
 					}
 					wg.Done()
-				}()
+				}(i)
 			}
 
 			<-sigs
@@ -103,7 +101,7 @@ type Task struct {
 	Scale int
 }
 
-func apply(t Task, workerId uint32) error {
+func apply(t Task, workerId int) error {
 	for i := 1; i <= t.Scale; i++ {
 		taskFunc := func(string) error { return nil }
 		switch t.Kind {
@@ -199,12 +197,11 @@ func applyCreateDelete(filePath string) error {
 	if err != nil {
 		return err
 	}
-	f.Close()
-	err = os.Remove(filePath)
+	err = f.Close()
 	if err != nil {
 		return err
 	}
-	return nil
+	return os.Remove(filePath)
 }
 
 func applyFork(filePath string) error {

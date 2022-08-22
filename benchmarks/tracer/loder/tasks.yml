@@ -6,7 +6,7 @@
 - kind: execute-subproc
   scale: 1
   files:
-  - /bin/ls
+  - /bin/echo
 - kind: execute-subthread
   scale: 1
   files:
@@ -14,11 +14,11 @@
 - kind: create-delete
   scale: 1
   files:
-  - /tmp/deleted-file
+  - /tmp/deleted-file-%d
 - kind: write
   scale: 1
   files:
-  - /tmp/new-file
+  - /tmp/new-file-%d
 - kind: fork
   scale: 1
   files:
@@ -26,35 +26,35 @@
 - kind: chmod
   scale: 1
   files:
-  - /tmp/new-file
+  - /tmp/new-file-%d
 - kind: chown
   scale: 1
   files:
-  - /tmp/new-file
+  - /tmp/new-file-%d
 - kind: mkdir
   scale: 1
   files:
-  - /tmp/new-dir
+  - /tmp/new-dir-%d
 - kind: write
   scale: 1
   files:
-  - /tmp/new-dir/new-file
+  - /tmp/new-dir-%d/new-file
 - kind: hard-link
   scale: 1
   files:
-  - /tmp/new-file
+  - /tmp/new-file-%d
 - kind: soft-link
   scale: 1
   files:
-  - /tmp/new-file
+  - /tmp/new-file-%d
 - kind: rename
   scale: 1
   files:
-  - /tmp/new-file
+  - /tmp/new-file-%d
 - kind: remove
   scale: 1
   files:
-  - /tmp/new-dir/new-file
-  - /tmp/new-dir
-  - /tmp/new-file-hard-link
-  - /tmp/new-file-soft-link
+  - /tmp/new-dir-%d/new-file
+  - /tmp/new-dir-%d
+  - /tmp/new-file-%d-hard-link
+  - /tmp/new-file-%d-soft-link
