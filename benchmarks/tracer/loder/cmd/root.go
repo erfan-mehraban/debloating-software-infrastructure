@@ -57,15 +57,16 @@ var (
 						case <-shutdown:
 							break infinite
 						default:
+							s := time.Now()
 							for _, task := range tasks {
-								s := time.Now()
 								err = apply(task, workerId)
-								observeDuration(time.Now().Sub(s))
 								if err != nil {
-									println(err.Error())
+									fmt.Println(err.Error())
+									close(sigs)
 									break infinite
 								}
 							}
+							observeDuration(time.Since(s))
 						}
 					}
 					wg.Done()
@@ -92,7 +93,7 @@ func Execute() {
 }
 
 func TruncatingSprintf(str string, args ...interface{}) string {
-	n := strings.Count(str, "%s")
+	n := strings.Count(str, "%d")
 	return fmt.Sprintf(str, args[0:n]...)
 }
 
@@ -186,9 +187,10 @@ func applyExecuteSubthread(executablePath string) error {
 	go func() {
 		runtime.LockOSThread()
 		defer runtime.UnlockOSThread()
-		err = applyExecuteSubproc(executablePath)
+		applyExecuteSubproc(executablePath)
 		wg.Done()
 	}()
+	wg.Wait()
 	return err
 }
 
@@ -206,7 +208,12 @@ func applyCreateDelete(filePath string) error {
 }
 
 func applyFork(filePath string) error {
-	_, err := syscall.ForkExec(filePath, nil, nil)
+	pid, err := syscall.ForkExec(filePath, nil, nil)
+	if err != nil {
+		return err
+	}
+	var wstatus syscall.WaitStatus
+	_, err = syscall.Wait4(pid, &wstatus, 0, nil)
 	return err
 }
 
