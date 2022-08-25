@@ -21,6 +21,7 @@ import (
 
 var (
 	workers int
+	runTime time.Duration
 	rootCmd = &cobra.Command{
 		Use:   "loder",
 		Short: "Apply a load to access os files and execute processes in respect to tasks file.",
@@ -71,7 +72,10 @@ var (
 				}(i)
 			}
 
-			<-sigs
+			select {
+			case <-time.After(runTime):
+			case <-sigs:
+			}
 			close(shutdown)
 			wg.Wait()
 			return nil
@@ -81,6 +85,7 @@ var (
 
 func init() {
 	rootCmd.Flags().IntVar(&workers, "worker", 1, "number of concurrent workers.")
+	rootCmd.Flags().DurationVar(&runTime, "run-time", time.Minute, "how much time loder should work")
 }
 
 func Execute() {
