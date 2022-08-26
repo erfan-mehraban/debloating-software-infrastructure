@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/fs"
 	"io/ioutil"
 	"math/rand"
@@ -15,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ncw/directio"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -112,8 +114,12 @@ func apply(t Task, workerId int) error {
 		switch t.Kind {
 		case "read":
 			taskFunc = applyRead
+		case "direct-read":
+			taskFunc = applyDirectRead
 		case "write":
 			taskFunc = applyWrite
+		case "direct-write":
+			taskFunc = applyDirectWrite
 		case "execute-subproc":
 			taskFunc = applyExecuteSubproc
 		case "execute-subthread":
@@ -157,20 +163,37 @@ func applyRead(filePath string) error {
 	defer f.Close()
 	// read first 4 byte
 	_, err = bufio.NewReader(f).Peek(4)
+	return err
+}
+
+func applyDirectRead(filePath string) error {
+	f, err := directio.OpenFile(filePath, os.O_RDONLY, 0666)
 	if err != nil {
-		return err
+		return nil
 	}
-	return nil
+	defer f.Close()
+	block := directio.AlignedBlock(directio.BlockSize)
+	_, err = io.ReadFull(f, block)
+	return err
 }
 
 func applyWrite(filePath string) error {
 	content := make([]byte, 4)
 	rand.Read(content)
 	err := os.WriteFile(filePath, content, 0644)
+	return err
+}
+
+func applyDirectWrite(filePath string) error {
+	content := make([]byte, directio.BlockSize)
+	rand.Read(content)
+	f, err := directio.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		return err
 	}
-	return nil
+	defer f.Close()
+	_, err = f.Write(content)
+	return err
 }
 
 func applyExecuteSubproc(executablePath string) error {

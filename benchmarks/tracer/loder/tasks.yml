@@ -3,6 +3,11 @@
   files:
   - /var/log/apt/history.log
   - /usr/lib/python3.9/numbers.py
+- kind: direct-read
+  scale: 1
+  files:
+  - /var/log/apt/history.log
+  - /usr/lib/python3.9/numbers.py
 - kind: execute-subproc
   scale: 1
   files:
@@ -16,6 +21,10 @@
   files:
   - /tmp/deleted-file-%d
 - kind: write
+  scale: 1
+  files:
+  - /tmp/new-file-%d
+- kind: direct-write
   scale: 1
   files:
   - /tmp/new-file-%d
