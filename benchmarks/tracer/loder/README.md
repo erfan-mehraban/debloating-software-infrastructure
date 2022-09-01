@@ -6,8 +6,10 @@ is a command line tool to apply read/write/execute files as configured in tasks 
 Containes an array of tasks with the following keys:
 
 - kind: what kind of tasks should be executed.
-  - read: read first 4 bytes of files
+  - read: read first 4 bytes of files (beaware of kernel cache)
+  - direct-read: read first 4 bytes of files and bypass kernel cache
   - write: write 4 bytes in a file
+  - direct-write: write 4 bytes to the files directly
   - execute-subproc: run another binary (execve syscalls)
   - execute-subthread: run a binary in a os thread
   - create-delete: create a file and then delete it

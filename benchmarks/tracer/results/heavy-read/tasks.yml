@@ -1,0 +1,4 @@
+- kind: direct-read
+  scale: 1
+  files:
+  - /tmp/random-populated-file

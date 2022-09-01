@@ -1,0 +1,7 @@
+Attaching 5 probes...
+/etc/ld.so.cache
+/lib/x86_64-linux-gnu/libc.so.6
+/lib/x86_64-linux-gnu/libpthread.so.0
+results/heavy-os-write/tasks.yml
+/sys/kernel/mm/transparent_hugepage/hpage_pmd_size
+/tmp/write

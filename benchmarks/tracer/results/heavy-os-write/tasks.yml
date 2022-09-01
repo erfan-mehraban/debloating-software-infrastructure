@@ -1,0 +1,4 @@
+- kind: write
+  scale: 1
+  files:
+  - /tmp/write

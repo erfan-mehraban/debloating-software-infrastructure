@@ -1,0 +1,4 @@
+- kind: direct-write
+  scale: 1
+  files:
+  - /tmp/direct-write
