@@ -1,0 +1,14 @@
+- [A Novel Approach to Containerize Existing Applications](https://repository.lib.fit.edu/handle/11141/2518)
+- [FogDocker](https://hal.archives-ouvertes.fr/hal-02332679)
+- [Optimizing Service Delivery with Minimal Runtimes](https://link.springer.com/chapter/10.1007/978-3-319-91764-1_35)
+- [An Empirical Analysis of the Docker Container Ecosystem on GitHub](https://ieeexplore.ieee.org/document/7962382)
+- [Confine: Automated System Call Policy Generation for Container Attack Surface Reduction](https://www.usenix.org/conference/raid2020/presentation/ghavanmnia)
+- [Automatic container definition](https://patents.google.com/patent/US20160350081)
+
+- Create a particular task configuration to find weak point of each tracing tool especialy bpftrace
+- Run more comprehensive benchmark and summarise results to mention in the final paper
+- Complete bpftrace script to track all desired syscalls.
+- Filtering and correcting file access result list from bpftrace (Like detecting symlinks or deleted files).
+
+- Implement client service to monitor syscalls with bpftrace
+- Implement aggregator service
